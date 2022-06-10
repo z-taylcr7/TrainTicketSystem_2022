@@ -11,8 +11,11 @@
 
 int main()
 {
+//    freopen("1.in","r",stdin);
+//    freopen("1.ans","w",stdout);
+	const bool is_online=0; 
     cmd ticketLibrary;
-    if(0)
+    if(is_online)
     {
         std::ios::sync_with_stdio(false);
         try {ticketLibrary.run(std::cin,std::cout);}

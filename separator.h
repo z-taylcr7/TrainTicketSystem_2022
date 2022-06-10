@@ -59,9 +59,9 @@ namespace Fourest
 
     bool separator::readLine(std::istream &_is)
     {
+        if(_is.eof()) return false;
         getline(_is,source);
         process();
-        if(_is.eof()) return false;
         return true;
     }
 
