@@ -13,7 +13,7 @@ int main()
 {
 //    freopen("1.in","r",stdin);
 //    freopen("1.ans","w",stdout);
-	const bool is_online=0; 
+	const bool is_online=1; 
     cmd ticketLibrary;
     if(is_online)
     {
@@ -25,10 +25,4 @@ int main()
             return 0;
         }
     }
-    else
-    {
-        std::stringstream sin,sout;
-        ticketLibrary.run(sin,sout);
-    }
-//    printf("GG");
 }
