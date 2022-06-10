@@ -317,6 +317,7 @@ public:
 		if(!train.if_released()) return -404;//列车未发布 
 		if(!train.check_date(date,station_s)) return -404;//无车次安排 
 		if(!train.check_sequence(pos)) return -404;//不到这两站
+		if(train.seat_num()<n) return -404;
 		Date d=train.setoff_date(station_s,date);
 //		std::cout<<d.show_message()<<"\n"; 
 		int seat_id=seats.get_id(trainID,d);
