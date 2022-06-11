@@ -53,7 +53,7 @@ private:
 	};
 	class SeatStorage{
 	private:
-		BPlusTree<100,200> seat_index;
+		BPlusTree<200,200> seat_index;
 		StoragePool<RemainedSeat,bool,20>seat_data;
 		string get_key(const string&train_id,const Date&data)const{
 			return train_id+data.show_message();
@@ -136,7 +136,7 @@ private:
 		logs.update(log_id,log);
 		return 1; 
 	}
-	void write_log(const int&_id,const Status _status,const string&_username,const string&_trainID,const string&_Fr,const string&_To,const RealTime&_departure,const RealTime&_arrival,const int&_price,const int&_num){
+ 	void write_log(const int&_id,const Status _status,const string&_username,const string&_trainID,const string&_Fr,const string&_To,const RealTime&_departure,const RealTime&_arrival,const int&_price,const int&_num){
 		Log new_log(_id,_status,_username,_trainID,_Fr,_To,_departure,_arrival,_price,_num); 
 		logs.add_log(_username,_id,new_log);
 	}
@@ -328,10 +328,12 @@ public:
 		if(seat_remain>=n){
 			train.de_seat(pos,n,seat);
 			seats.update(seat_id,seat);
+//		return 0;
 			write_log(id,SUCCESS,username,trainID,station_s,station_t,time.first,time.second,tot_price/n,n);
 			return tot_price;
 		}else{
 			if(!q) return -404;
+//		return 0;
 			write_log(id,PENDING,username,trainID,station_s,station_t,time.first,time.second,tot_price/n,n);
 			return 0;
 		}
