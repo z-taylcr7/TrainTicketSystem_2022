@@ -4,8 +4,8 @@ class TrainManager{
 private:
 	class TrainStorage{
 	private:
-		BPlusTree<100,200>mtrain_index;
-		BPlusTree<100,200>strain_index;
+		BPlusTree<400,200>mtrain_index;
+		BPlusTree<400,200>strain_index;
 		StoragePool<Train,bool,20> train_data;
 	public:
 		TrainStorage():mtrain_index("mtrain_index.dat"),strain_index("strain_index.dat"),train_data("train_data.dat"){}
@@ -53,7 +53,7 @@ private:
 	};
 	class SeatStorage{
 	private:
-		BPlusTree<200,200> seat_index;
+		BPlusTree<400,200> seat_index;
 		StoragePool<RemainedSeat,bool,20>seat_data;
 		string get_key(const string&train_id,const Date&data)const{
 			return train_id+data.show_message();
@@ -90,7 +90,7 @@ private:
 	};
 	class LogStorage{
 	private:
-		BPlusTree<100,200> log_index;
+		BPlusTree<400,200> log_index;
 		StoragePool<Log,bool,20>log_data;
 	public:
 		LogStorage():log_index("log_index.dat"),log_data("log_data.dat"){}
