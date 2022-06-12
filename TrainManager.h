@@ -218,8 +218,8 @@ public:
 //		for(int i=0;i<trains2.size();i++) std::cout<<trains2[i].first<<" ";std::cout<<"\n"; 
 //		for(int i=0;i<trains2.size();i++) std::cout<<trains2[i].second<<"\n"; std::cout<<"\n";
 		for(int i=0,j=0;i<trains2.size()&&j<trains1.size();){
-			if(trains2[i].second<trains1[j].second) j++;
-			else if (trains2[i].second>trains1[j].second) i++;
+			if(trains2[i].second<trains1[j].second) i++;
+			else if (trains2[i].second>trains1[j].second) j++;
 			else{
 				Train train(trains.get_train(trains2[i].first));
 				pair<int,int>pos=train.get_id(station_s,station_t);

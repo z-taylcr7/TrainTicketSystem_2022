@@ -13,7 +13,7 @@ namespace Geneva{
 //    (4096 - 5 * sizeof(int) - sizeof(bool)) / (sizeof(String)+sizeof(long long)+ sizeof(int)) - 1,
             int L = 200,
             //          (4096 - 4 * sizeof(int)) / (sizeof(String)+sizeof(long long)+ sizeof(int)) - 1,
-             int CACHESIZE = 50>
+             int CACHESIZE = 100>
     class BPlusTree {
         ///Announcement:
         ///go left: <key
