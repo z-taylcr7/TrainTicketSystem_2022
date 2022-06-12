@@ -211,30 +211,23 @@ public:
 		trains1.clear();trains2.clear();
 		trains.get_ids(station_s,trains1);
 		trains.get_ids(station_t,trains2);
-		HashMap<ll,int>station;
+//		HashMap<ll,int>station;
 		vector<pair<pair<int,string>,int> >list;
-//		std::cout<<"经过第一站的："<<"\n";
-		for(int i=0;i<trains1.size();i++){
-			station.insert(trains1[i].second,1);
-//			Train train(trains.get_train(trains1[i].first));
-//			std::cout<<train.train_id()<<"\n"; 
-		} 
-//		std::cout<<"----------------------\n"; 
-//		std::cout<<"经过第二站的："<<"\n";
-//		for(int i=0;i<trains2.size();i++){
-//			station.insert(trains2[i].second,1);
-//			Train train(trains.get_train(trains1[i].first));
-//			std::cout<<train.train_id()<<"\n"; 
-//		} 
-//		std::cout<<"----------------------\n"; 
-		for(int i=0;i<trains2.size();i++){
-			if(station.count(trains2[i].second)){
+//		for(int i=0;i<trains1.size();i++) station.insert(trains1[i].second,1);
+//		std::cout<<"------------------------------------------------------\n";
+//		for(int i=0;i<trains2.size();i++) std::cout<<trains2[i].first<<" ";std::cout<<"\n"; 
+//		for(int i=0;i<trains2.size();i++) std::cout<<trains2[i].second<<"\n"; std::cout<<"\n";
+		for(int i=0,j=0;i<trains2.size()&&j<trains1.size();){
+			if(trains2[i].second<trains1[j].second) j++;
+			else if (trains2[i].second>trains1[j].second) i++;
+			else{
 				Train train(trains.get_train(trains2[i].first));
 				pair<int,int>pos=train.get_id(station_s,station_t);
 				if(train.check_date(date,station_s)&&train.if_released()&&train.check_sequence(pos)){
 					if(if_time) list.push_back({{train.get_time(pos),train.train_id()},i});
 					else list.push_back({{train.get_price(pos),train.train_id()},i});
 				}
+				i++,j++;
 			}
 		}
 		if(list.empty()){
