@@ -12,43 +12,52 @@ private:
 		~TrainStorage()=default;
 		int get_id(const string&train_id){// 找到train_id的储存地址 
 			vector<pair<int,ll> >tmp;
-			strain_index.find(train_id,tmp);
+			strain_index.find(String(train_id),tmp);
 			if(tmp.empty()) return -404;
 			return tmp[0].first;
 		}
 		int get_ids(const string&station_name,vector<pair<int,ll> >&o){//找到途经station_name的所有火车 
-			mtrain_index.find(station_name,o);
+			mtrain_index.find((String)station_name,o);
+//			std::cout<<"get_ids of "<<station_name<<"  "<<o.size()<<"\n";
 			if(o.empty()) return -404;
 			return o.size();
 		}
 		Train get_train(const int&id){return train_data.get(id);}
 		void get_trains(const string&station_name,vector<Train>&o){
 			vector<pair<int,ll> >tmp;
-			mtrain_index.find(station_name,tmp);
+			mtrain_index.find((String)station_name,tmp);
 			for(int i=0;i<tmp.size();i++) o.push_back(train_data.get(tmp[i].first));
 		}
 		void update(const int&id,const Train&o){
 			train_data.update(id,o);
 		}
 		void release(const int&id,const Train&train){
+			
+			vector<pair<int,ll> >tmp;
+			
 			ll key=hash_int(train.train_id());
 			for(int i=0;i<train.station_num();i++){
-				mtrain_index.insert({train.station_name(i),key},id);
+//				std::cout<<"insert "<<(String)train.station_name(i)<<" "<<key<<"\n";
+				mtrain_index.insert({(String)train.station_name(i),key},id);
+//				for(int j=i;j>=0;j--){
+//					tmp.clear();
+//					get_ids(train.station_name(j),tmp);
+//				}
 			}
 			train_data.update(id,train);
 		}
 		void add_train(const string&train_id,const Train&train){
 			int id=train_data.add(train);
-			strain_index.insert({train_id,id},id);
+			strain_index.insert({(String)train_id,id},id);
 		}
 		void delete_train(const string&train_id,const int&id){
-			strain_index.remove({train_id,id},id);
+			strain_index.remove({(String)train_id,id},id);
 			train_data.remove(id);
 		}
 		void clean(){
 			train_data.clearAll();
-			strain_index.clean();
-			mtrain_index.clean();
+			strain_index.clear();
+			mtrain_index.clear();
 		}
 	};
 	class SeatStorage{
@@ -63,7 +72,7 @@ private:
 		~SeatStorage()=default;
 		int get_id(const string&train_id,const Date&date){
 			vector<pair<int,ll> >tmp;
-			seat_index.find(get_key(train_id,date),tmp);
+			seat_index.find((String)get_key(train_id,date),tmp);
 			if(tmp.empty()) return -404;
 			return tmp[0].first;
 		}
@@ -77,14 +86,14 @@ private:
 				string main_key=get_key(train_id,date);
 				RemainedSeat seat(main_key,train.station_num(),train.seat_num());
 				int id=seat_data.add(seat);
-				seat_index.insert({main_key,id},id);
+				seat_index.insert({(String)main_key,id},id);
 			}
 		}
 		void update(const int&id,const RemainedSeat&seat){
 			seat_data.update(id,seat);
 		}
 		void clean(){
-			seat_index.clean();
+			seat_index.clear();
 			seat_data.clearAll();
 		}
 	};
@@ -97,7 +106,7 @@ private:
 		~LogStorage()=default;
 		int get_id(const string&username,const int&id){
 			vector<pair<int,ll> >tmp;
-			log_index.find(username,tmp);
+			log_index.find((String)username,tmp);
 			if(tmp.empty()) return -404;
 			for(int i=0;i<tmp.size();i++)
 				if(tmp[i].second==id) return tmp[i].first;
@@ -105,7 +114,7 @@ private:
 		}
 		void add_log(const string&username,const int&id,const Log&log){
 			int pos=log_data.add(log);
-			log_index.insert({username,id},pos);
+			log_index.insert({(String)username,id},pos);
 		}
 		void update(const int&log_id,const Log&log){
 			log_data.update(log_id,log);
@@ -114,14 +123,14 @@ private:
 		
 		void get_logs(const string&username,vector<Log>&o){
 			vector<pair<int,ll> >tmp;
-			log_index.find(username,tmp);
+			log_index.find((String)username,tmp);
 			for(int i=0;i<tmp.size();i++){
 				o.push_back(log_data.get(tmp[i].first));
 			}
 			sort(o.begin(),o.end()); 
 		}
 		void clean(){
-			log_index.clean();
+			log_index.clear();
 			log_data.clearAll();
 		}
 	};
@@ -202,23 +211,30 @@ public:
 		trains1.clear();trains2.clear();
 		trains.get_ids(station_s,trains1);
 		trains.get_ids(station_t,trains2);
-//		HashMap<ll,int>station;
+		HashMap<ll,int>station;
 		vector<pair<pair<int,string>,int> >list;
-//		for(int i=0;i<trains1.size();i++) station.insert(trains1[i].second,1);
-//		std::cout<<"------------------------------------------------------\n";
-//		for(int i=0;i<trains2.size();i++) std::cout<<trains2[i].first<<" ";std::cout<<"\n"; 
-//		for(int i=0;i<trains2.size();i++) std::cout<<trains2[i].second<<"\n"; std::cout<<"\n";
-		for(int i=0,j=0;i<trains2.size()&&j<trains1.size();){
-			if(trains2[i].second<trains1[j].second) j++;
-			else if (trains2[i].second>trains1[j].second) i++;
-			else{
+//		std::cout<<"经过第一站的："<<"\n";
+		for(int i=0;i<trains1.size();i++){
+			station.insert(trains1[i].second,1);
+//			Train train(trains.get_train(trains1[i].first));
+//			std::cout<<train.train_id()<<"\n"; 
+		} 
+//		std::cout<<"----------------------\n"; 
+//		std::cout<<"经过第二站的："<<"\n";
+//		for(int i=0;i<trains2.size();i++){
+//			station.insert(trains2[i].second,1);
+//			Train train(trains.get_train(trains1[i].first));
+//			std::cout<<train.train_id()<<"\n"; 
+//		} 
+//		std::cout<<"----------------------\n"; 
+		for(int i=0;i<trains2.size();i++){
+			if(station.count(trains2[i].second)){
 				Train train(trains.get_train(trains2[i].first));
 				pair<int,int>pos=train.get_id(station_s,station_t);
 				if(train.check_date(date,station_s)&&train.if_released()&&train.check_sequence(pos)){
 					if(if_time) list.push_back({{train.get_time(pos),train.train_id()},i});
 					else list.push_back({{train.get_price(pos),train.train_id()},i});
 				}
-				i++,j++;
 			}
 		}
 		if(list.empty()){

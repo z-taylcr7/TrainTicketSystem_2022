@@ -25,14 +25,14 @@ struct ints {int value=0; ints()=default; explicit ints(int x):value(x){}};
 		~OrderStorage()=default;
 		int get_id(const string&trainID,const int&id){
 			vector<pair<int,ll> >tmp;
-			order_index.find(trainID,tmp);
+			order_index.find((String)trainID,tmp);
 			if(tmp.empty()) return -404;
 			return tmp[0].first;
 		}
 		void add_order(const string&trainID,const int&num,const Order&order){
 			order_data.writeExtraBlock((ints)num);//更新总订单数 
 			int id=order_data.add(order);
-			order_index.insert({trainID,num},id);
+			order_index.insert({(String)trainID,num},id);
 		}
 		void update(const int&id,const Order&order){
 			order_data.update(id,order);
@@ -42,17 +42,17 @@ struct ints {int value=0; ints()=default; explicit ints(int x):value(x){}};
 		}
 		int order_num(){return order_data.readExtraBlock().value;}
 		void remove_order(const int&id,const string&trainID,const int&num){
-			order_index.remove({trainID,num},id);
+			order_index.remove({(String)trainID,num},id);
 			order_data.remove(id); 
 		}
 		void get_ids(const string&trainID,vector<pair<ll,int> >&o){
 			vector<pair<int,ll> >tmp;
-			order_index.find(trainID,tmp);
+			order_index.find((String)trainID,tmp);
 			for(int i=0;i<tmp.size();i++) o.push_back({tmp[i].second,tmp[i].first});
 			sort(o.begin(),o.end());
 		}
 		void clean(){
-			order_index.clean();
+			order_index.clear();
 			order_data.clearAll();
 		}
 	};

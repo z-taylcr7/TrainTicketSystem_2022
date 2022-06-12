@@ -15,7 +15,7 @@ struct ints {int value=0; ints()=default; explicit ints(int x):value(x){}};
 		
 		int get_id(const string&username){// 找到username的账户的储存地址 
 			vector<pair<int,ll> >temp;
-			user_index.find(username,temp);
+			user_index.find((String)username,temp);
 			if(temp.empty()) return -404;
 			return temp[0].first;
 		}
@@ -24,14 +24,16 @@ struct ints {int value=0; ints()=default; explicit ints(int x):value(x){}};
 		void update(const int&id,const User&user){user_data.update(id,user);}
 		void add_user(const string&username,const User&user){
 			int id=user_data.add(user);
-			user_index.insert({username,id},id); 
+//			puts("users_insert here");
+			user_index.insert({(String)username,id},id); 
+//			puts("users_insert finished");
 		}
 		
 		bool empty(){return is_empty;}
 		void not_empty(){user_data.writeExtraBlock(ints(1));is_empty=0;}
 		void clean(){
 			user_data.clearAll();
-			user_index.clean();
+			user_index.clear();
 		}
 	}users;
 	HashMap<string,std::pair<int,int> > logged_users;
@@ -40,13 +42,16 @@ public:
 	~UserManager(){logged_users.clear();}
 	
 	bool add_user(const string&ouser,const string&username,const string&password,const string&name,const string&mailAddr,const int&privilege){
-//		std::cout<<username<<'\n'; 
+//		std::cout<<username<<"  GG\n"; 
+		
 		if(users.empty()){
-//			puts("!!");
+//			puts("!!");std::cout<<username<<"  GG\n"; 
 			if(!logged_users.empty()) return 0;//Unknown situation 
 //			puts("!!!");
 			User user(username,password,name,mailAddr,10);
+//			puts("!!");
 			users.add_user(username,user);
+//			puts("!");
 			users.not_empty();
 			return 1;
 		}

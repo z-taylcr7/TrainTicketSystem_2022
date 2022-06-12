@@ -43,6 +43,7 @@ public:
     cmd():words(' '){}
     void run(std::istream &is, std::ostream &os)
     {
+//    	puts("Programme begin");
 //    	int tt=4;
         words.readLine(is);
         do
@@ -66,6 +67,7 @@ public:
                     else if(words[i]=="-m") m=words[i+1];
                     else if(words[i]=="-g") g=to_int(words[i+1]);
                 }
+//                std::cout<<u<<std::endl;
                 os<<sys.add_user(c,u,p,n,m,g)-1;
             }
             else if(command=="login")
@@ -175,6 +177,7 @@ public:
             }
             else if(command=="query_ticket")
             {
+//            	continue;
                 string s,t;
                 Date d;
                 bool p=true;
@@ -217,6 +220,7 @@ public:
             }
             else if(command=="buy_ticket")
             {
+//            	continue;
                 string u,i,f,t;
                 Date d;
                 int n;

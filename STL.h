@@ -74,6 +74,7 @@ void sort(valueType *l,valueType *r)
     sort(l,i-1); sort(i+1,r);
 }
 
+
 template<typename key_type,typename value_type,class Hash=std::hash<key_type>>
 class HashMap
 {
@@ -222,7 +223,7 @@ public:
     value_type &operator[](const key_type &key)
     {
         auto pos=get_index(key);
-        return *lists[pos].find(key)->value;
+        return lists[pos].find(key)->value;
     }
 
     value_type *find(const key_type &key) const
@@ -244,8 +245,6 @@ public:
         lists=new LinkList[prime_list[prime_pos_now]];
     }
 };
-
-
 
 
 

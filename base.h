@@ -2,9 +2,10 @@
 #ifndef nnnd
 #define nnnd
 
-#include "BPlusTree.h"
+#include "BPlusTree.hpp"
 #include<string>
 #include <iostream>
+#include "StoragePool.h"
 using std::ostream;
 typedef long long ll;  
 
