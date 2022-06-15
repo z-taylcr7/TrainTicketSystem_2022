@@ -15,7 +15,7 @@ struct ints {int value=0; ints()=default; explicit ints(int x):value(x){}};
 		
 		int get_id(const string&username){// 找到username的账户的储存地址 
 			vector<pair<int,ll> >temp;
-			user_index.find((String)username,temp);
+			user_index.find(username,temp);
 			if(temp.empty()) return -404;
 			return temp[0].first;
 		}
@@ -25,7 +25,7 @@ struct ints {int value=0; ints()=default; explicit ints(int x):value(x){}};
 		void add_user(const string&username,const User&user){
 			int id=user_data.add(user);
 //			puts("users_insert here");
-			user_index.insert({(String)username,id},id); 
+			user_index.insert({username,id},id); 
 //			puts("users_insert finished");
 		}
 		

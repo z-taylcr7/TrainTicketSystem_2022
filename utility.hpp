@@ -3,6 +3,7 @@
 //
 
 #include <utility>
+#include<iostream>
 
 #ifndef BPLUSTREE_UTILITY_HPP
 #define BPLUSTREE_UTILITY_HPP
@@ -11,6 +12,7 @@ namespace Geneva{
     int upper_bound(data* st,data* ed,const data&key ){
         int mid,ans=0;
         int l=0,r=(ed-st);
+//        std::cout<<l<<" "<<r<<std::endl; 
         while(r-l>0){
             mid=((r+l)>>1);
             if(key<st[mid]){

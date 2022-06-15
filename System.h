@@ -25,14 +25,14 @@ struct ints {int value=0; ints()=default; explicit ints(int x):value(x){}};
 		~OrderStorage()=default;
 		int get_id(const string&trainID,const int&id){
 			vector<pair<int,ll> >tmp;
-			order_index.find((String)trainID,tmp);
+			order_index.find(trainID,tmp);
 			if(tmp.empty()) return -404;
 			return tmp[0].first;
 		}
 		void add_order(const string&trainID,const int&num,const Order&order){
 			order_data.writeExtraBlock((ints)num);//更新总订单数 
 			int id=order_data.add(order);
-			order_index.insert({(String)trainID,num},id);
+			order_index.insert({trainID,num},id);
 		}
 		void update(const int&id,const Order&order){
 			order_data.update(id,order);
@@ -42,12 +42,12 @@ struct ints {int value=0; ints()=default; explicit ints(int x):value(x){}};
 		}
 		int order_num(){return order_data.readExtraBlock().value;}
 		void remove_order(const int&id,const string&trainID,const int&num){
-			order_index.remove({(String)trainID,num},id);
+			order_index.remove({trainID,num},id);
 			order_data.remove(id); 
 		}
 		void get_ids(const string&trainID,vector<pair<ll,int> >&o){
 			vector<pair<int,ll> >tmp;
-			order_index.find((String)trainID,tmp);
+			order_index.find(trainID,tmp);
 			for(int i=0;i<tmp.size();i++) o.push_back({tmp[i].second,tmp[i].first});
 			sort(o.begin(),o.end());
 		}
@@ -155,15 +155,19 @@ public:
 		return 1;
 	}
 	string buy_ticket(const string&username,const string&trainID,const Date&date,const string&station_s,const string&station_t,int n,bool q){
+//		std::cout<<"buy ticket here"<<std::endl;
 		if(user.check_priority(username)<0) return "-1";
 		int num=user.query_ticketNum(username);
+//		std::cout<<"!!!"<<std::endl;
 		ll cost=train.buy_ticket(trainID,date,station_s,station_t,n,num+1,username,q);
+//		std::cout<<"12345678"<<std::endl;
 		if(cost>0){
 			user.add_ticketNum(username);
 			return std::to_string(cost);
 		}else{
 			if(cost<0) return "-1";
 			if(q){
+//				puts("!!!") ;
 				add_order(num+1,username,trainID,date,station_s,station_t,n);
 				user.add_ticketNum(username);
 				return "queue"; 

@@ -222,8 +222,8 @@ public:
 
     value_type &operator[](const key_type &key)
     {
-        auto pos=get_index(key);
-        return lists[pos].find(key)->value;
+        if (lists[get_index(key)].find(key)==NULL) insert(key,value_type());
+        return lists[get_index(key)].find(key)->value;
     }
 
     value_type *find(const key_type &key) const
