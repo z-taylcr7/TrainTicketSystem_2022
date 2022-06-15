@@ -5,7 +5,7 @@ private:
 	private:
 struct ints {int value=0; ints()=default; explicit ints(int x):value(x){}};
 		StoragePool<User,ints,100>user_data;
-		BPlusTree<190,190>user_index;
+		BPlusTree<> user_index;
 		bool is_empty=1;
 	public:
 		UserStorage():user_data("user_data.dat"),user_index("user_index.dat"){

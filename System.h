@@ -18,7 +18,7 @@ class System{
 	class OrderStorage{
 	private:
 struct ints {int value=0; ints()=default; explicit ints(int x):value(x){}};
-		BPlusTree<400,400> order_index;
+		BPlusTree<> order_index;
 		StoragePool<Order,ints,20>order_data;
 	public:
 		OrderStorage():order_index("order_index.dat"),order_data("order_data.dat"){}
