@@ -188,7 +188,7 @@ namespace Geneva {
                 : filename(_filename), cache(_capacity), hashmap() {
             file = fopen(filename.c_str(), "rb");
             if (file == NULL) {
-            	std::cout<<"NULL\n"; 
+//            	std::cout<<"NULL\n"; 
                 file = fopen(filename.c_str(), "wb+");
                 fclose(file);
                 writePoint = -1;

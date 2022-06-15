@@ -50,7 +50,7 @@ public:
 		if(users.empty()){
 //			puts("!!");std::cout<<username<<"  GG\n"; 
 			if(!logged_users.empty()){
-				std::cout<<"wtf\n";
+//				std::cout<<"wtf\n";
 				return 0;//Unknown situation 
 			}
 //			puts("!!!");
@@ -63,11 +63,11 @@ public:
 		}
 		int priority=check_priority(ouser);
 		if(priority==-404 || priority<=privilege){
-			std::cout<<"here1\n";
+//			std::cout<<"here1\n";
 			return 0;// 用户不存在或权限不够 
 		}
 		if(users.get_id(username)>=0){
-			std::cout<<"here2\n";
+//			std::cout<<"here2\n";
 			return 0; //用户已存在 
 		}
 		users.add_user(username,User(username,password,name,mailAddr,privilege));
