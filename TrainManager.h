@@ -6,10 +6,14 @@ private:
 	private:
 		BPlusTree<> mtrain_index;
 		BPlusTree<> strain_index;
-		MemoryPool<Train,bool,20> train_data;
+		MemoryPool<Train,bool>*train_data;
 	public:
-		TrainStorage():mtrain_index("mtrain_index.dat"),strain_index("strain_index.dat"),train_data("train_data.dat"){}
-		~TrainStorage()=default;
+		TrainStorage():mtrain_index("mtrain_index.dat"),strain_index("strain_index.dat"){
+			train_data= new MemoryPool<Train,bool>("train_data.dat",0,20);
+		}
+		~TrainStorage(){
+			delete train_data;
+		}
 		int get_id(const string&train_id){// ÕÒµ½train_idµÄ´¢´æµØÖ· 
 			vector<pair<int,ll> >tmp;
 			strain_index.find((train_id),tmp);
@@ -22,14 +26,14 @@ private:
 			if(o.empty()) return -404;
 			return o.size();
 		}
-		Train get_train(const int&id){return train_data.get(id);}
+		Train get_train(const int&id){return train_data->get(id);}
 		void get_trains(const string&station_name,vector<Train>&o){
 			vector<pair<int,ll> >tmp;
 			mtrain_index.find(station_name,tmp);
-			for(int i=0;i<tmp.size();i++) o.push_back(train_data.get(tmp[i].first));
+			for(int i=0;i<tmp.size();i++) o.push_back(train_data->get(tmp[i].first));
 		}
 		void update(const int&id,const Train&o){
-			train_data.update(id,o);
+			train_data->update(id,o);
 		}
 		void release(const int&id,const Train&train){
 			
@@ -37,18 +41,18 @@ private:
 			
 			ll key=hash_int(train.train_id());
 			for(int i=0;i<train.station_num();i++) mtrain_index.insert({train.station_name(i),key},id);
-			train_data.update(id,train);
+			train_data->update(id,train);
 		}
 		void add_train(const string&train_id,const Train&train){
-			int id=train_data.add(train);
+			int id=train_data->add(train);
 			strain_index.insert({train_id,id},id);
 		}
 		void delete_train(const string&train_id,const int&id){
 			strain_index.remove({train_id,id},id);
-			train_data.remove(id);
+			train_data->remove(id);
 		}
 		void clean(){
-			train_data.clearAll();
+			train_data->clearAll();
 			strain_index.clear();
 			mtrain_index.clear();
 		}
@@ -56,13 +60,17 @@ private:
 	class SeatStorage{
 	private:
 		BPlusTree<> seat_index;
-		MemoryPool<RemainedSeat,bool,20>seat_data;
+		MemoryPool<RemainedSeat,bool>*seat_data;
 		string get_key(const string&train_id,const Date&data)const{
 			return train_id+data.show_message();
 		}
 	public:
-		SeatStorage():seat_index("seat_index.dat"),seat_data("seat_data.dat"){}
-		~SeatStorage()=default;
+		SeatStorage():seat_index("seat_index.dat"){
+			seat_data=new MemoryPool<RemainedSeat,bool>("seat_data.dat",0,20);
+		}
+		~SeatStorage(){
+			delete seat_data;
+		}
 		int get_id(const string&train_id,const Date&date){
 			vector<pair<int,ll> >tmp;
 			seat_index.find(get_key(train_id,date),tmp);
@@ -71,7 +79,7 @@ private:
 			return tmp[0].second;
 		}
 		RemainedSeat get_seats(const int&id){
-			return seat_data.get(id);
+			return seat_data->get(id);
 		}
 		void release(const Train&train){
 			string train_id=train.train_id();
@@ -79,25 +87,29 @@ private:
 			for(Date date=pos.first;date<=pos.second;++date){
 				string main_key=get_key(train_id,date);
 				RemainedSeat seat(main_key,train.station_num(),train.seat_num());
-				int id=seat_data.add(seat);
+				int id=seat_data->add(seat);
 				seat_index.insert({main_key,id},id);
 			}
 		}
 		void update(const int&id,const RemainedSeat&seat){
-			seat_data.update(id,seat);
+			seat_data->update(id,seat);
 		}
 		void clean(){
 			seat_index.clear();
-			seat_data.clearAll();
+			seat_data->clearAll();
 		}
 	};
 	class LogStorage{
 	private:
 		BPlusTree<>  log_index;
-		MemoryPool<Log,bool,20>log_data;
+		MemoryPool<Log,bool>*log_data;
 	public:
-		LogStorage():log_index("log_index.dat"),log_data("log_data.dat"){}
-		~LogStorage()=default;
+		LogStorage():log_index("log_index.dat"){
+			log_data=new MemoryPool<Log,bool>("log_data.dat",0,20);
+		}
+		~LogStorage(){
+			delete log_data;
+		}
 		int get_id(const string&username,const int&id){
 			vector<pair<int,ll> >tmp;
 			log_index.find(username,tmp);
@@ -108,27 +120,27 @@ private:
 		}
 		void add_log(const string&username,const int&id,const Log&log){
 //		std::cout<<"add_log here"<<std::endl; 
-			int pos=log_data.add(log);
+			int pos=log_data->add(log);
 //		std::cout<<"insert "<<username<<" "<<id<<std::endl; 
 			log_index.insert({username,id},pos);
 //		std::cout<<"finished"<<std::endl; 
 		}
 		void update(const int&log_id,const Log&log){
-			log_data.update(log_id,log);
+			log_data->update(log_id,log);
 		}
-		Log get_log(const int&log_id){return log_data.get(log_id);}
+		Log get_log(const int&log_id){return log_data->get(log_id);}
 		
 		void get_logs(const string&username,vector<Log>&o){
 			vector<pair<int,ll> >tmp;
 			log_index.find(username,tmp);
 			for(int i=0;i<tmp.size();i++){
-				o.push_back(log_data.get(tmp[i].first));
+				o.push_back(log_data->get(tmp[i].first));
 			}
 			sort(o.begin(),o.end()); 
 		}
 		void clean(){
 			log_index.clear();
-			log_data.clearAll();
+			log_data->clearAll();
 		}
 	};
 	TrainStorage trains;

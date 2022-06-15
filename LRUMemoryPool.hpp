@@ -11,7 +11,7 @@ using std::pair;
 using std::string;
 
 namespace Geneva {
-    template<class T, class preface = int, int CacheSize = 120>
+    template<class T, class preface = int>
     class MemoryPool {
     private:
         class DoublyLinkedList {
@@ -183,10 +183,12 @@ namespace Geneva {
         }
 
     public:
-        explicit MemoryPool(const string &_filename, const preface &pre = preface{}, int _capacity = CacheSize)
+    	MemoryPool()=delete;
+        explicit MemoryPool(const string &_filename, const preface &pre = preface{}, int _capacity = 120)
                 : filename(_filename), cache(_capacity), hashmap() {
             file = fopen(filename.c_str(), "rb");
             if (file == NULL) {
+            	std::cout<<"NULL\n"; 
                 file = fopen(filename.c_str(), "wb+");
                 fclose(file);
                 writePoint = -1;
@@ -262,7 +264,7 @@ namespace Geneva {
             fclose(file);
             return tmp;
         }
-    	preface readExtraBlock(){readPre();}
+    	preface readExtraBlock(){return readPre();}
 
         void updatePre(const preface &o) {
             file = fopen(filename.c_str(), "rb+");

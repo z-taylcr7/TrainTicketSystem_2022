@@ -4,14 +4,17 @@ private:
 	class UserStorage{
 	private:
 struct ints {int value=0; ints()=default; explicit ints(int x):value(x){}};
-		MemoryPool<User,ints,20>user_data;
 		BPlusTree<> user_index;
+		MemoryPool<User,ints>*user_data;
 		bool is_empty=1;
 	public:
-		UserStorage():user_data("user_data.dat"),user_index("user_index.dat"){
-			is_empty=(user_data.readExtraBlock().value==0);
+		UserStorage():user_index("user_index.dat"){
+			user_data=new MemoryPool<User,ints>("user_data.dat",ints(0),20);
+			is_empty=(user_data->readExtraBlock().value==0);
 		}
-		~UserStorage()=default;
+		~UserStorage(){
+			delete user_data;
+		}
 		
 		int get_id(const string&username){// 找到username的账户的储存地址 
 			vector<pair<int,ll> >temp;
@@ -19,20 +22,20 @@ struct ints {int value=0; ints()=default; explicit ints(int x):value(x){}};
 			if(temp.empty()) return -404;
 			return temp[0].first;
 		}
-		User get_user(int id){return user_data.get(id);}
+		User get_user(int id){return user_data->get(id);}
 		
-		void update(const int&id,const User&user){user_data.update(id,user);}
+		void update(const int&id,const User&user){user_data->update(id,user);}
 		void add_user(const string&username,const User&user){
-			int id=user_data.add(user);
+			int id=user_data->add(user);
 //			puts("users_insert here");
 			user_index.insert({username,id},id); 
 //			puts("users_insert finished");
 		}
 		
 		bool empty(){return is_empty;}
-		void not_empty(){user_data.writeExtraBlock(ints(1));is_empty=0;}
+		void not_empty(){user_data->writeExtraBlock(ints(1));is_empty=0;}
 		void clean(){
-			user_data.clearAll();
+			user_data->clearAll();
 			user_index.clear();
 		}
 	}users;
@@ -46,7 +49,10 @@ public:
 		
 		if(users.empty()){
 //			puts("!!");std::cout<<username<<"  GG\n"; 
-			if(!logged_users.empty()) return 0;//Unknown situation 
+			if(!logged_users.empty()){
+				std::cout<<"wtf\n";
+				return 0;//Unknown situation 
+			}
 //			puts("!!!");
 			User user(username,password,name,mailAddr,10);
 //			puts("!!");
@@ -56,8 +62,14 @@ public:
 			return 1;
 		}
 		int priority=check_priority(ouser);
-		if(priority==-404 || priority<=privilege) return 0;// 用户不存在或权限不够 
-		if(users.get_id(username)>=0) return 0; //用户已存在 
+		if(priority==-404 || priority<=privilege){
+			std::cout<<"here1\n";
+			return 0;// 用户不存在或权限不够 
+		}
+		if(users.get_id(username)>=0){
+			std::cout<<"here2\n";
+			return 0; //用户已存在 
+		}
 		users.add_user(username,User(username,password,name,mailAddr,privilege));
 		return 1; 
 	}

@@ -19,10 +19,14 @@ class System{
 	private:
 struct ints {int value=0; ints()=default; explicit ints(int x):value(x){}};
 		BPlusTree<> order_index;
-		MemoryPool<Order,ints,20>order_data;
+		MemoryPool<Order,ints>*order_data;
 	public:
-		OrderStorage():order_index("order_index.dat"),order_data("order_data.dat"){}
-		~OrderStorage()=default;
+		OrderStorage():order_index("order_index.dat"){
+			order_data=new MemoryPool<Order,ints>("order_data.dat",ints(0),20);
+		}
+		~OrderStorage(){
+			delete order_data;
+		}
 		int get_id(const string&trainID,const int&id){
 			vector<pair<int,ll> >tmp;
 			order_index.find(trainID,tmp);
@@ -30,20 +34,20 @@ struct ints {int value=0; ints()=default; explicit ints(int x):value(x){}};
 			return tmp[0].first;
 		}
 		void add_order(const string&trainID,const int&num,const Order&order){
-			order_data.writeExtraBlock((ints)num);//更新总订单数 
-			int id=order_data.add(order);
+			order_data->writeExtraBlock((ints)num);//更新总订单数 
+			int id=order_data->add(order);
 			order_index.insert({trainID,num},id);
 		}
 		void update(const int&id,const Order&order){
-			order_data.update(id,order);
+			order_data->update(id,order);
 		}
 		Order get_order(const int&id){
-			return order_data.get(id);
+			return order_data->get(id);
 		}
-		int order_num(){return order_data.readExtraBlock().value;}
+		int order_num(){return order_data->readExtraBlock().value;}
 		void remove_order(const int&id,const string&trainID,const int&num){
 			order_index.remove({trainID,num},id);
-			order_data.remove(id); 
+			order_data->remove(id); 
 		}
 		void get_ids(const string&trainID,vector<pair<ll,int> >&o){
 			vector<pair<int,ll> >tmp;
@@ -53,7 +57,7 @@ struct ints {int value=0; ints()=default; explicit ints(int x):value(x){}};
 		}
 		void clean(){
 			order_index.clear();
-			order_data.clearAll();
+			order_data->clearAll();
 		}
 	};
 	TrainManager train;
