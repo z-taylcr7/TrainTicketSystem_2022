@@ -11,7 +11,7 @@
 
 int main()
 {
-//    freopen("5.in","r",stdin);
+//    freopen("1.in","r",stdin);
 //    freopen("1.ans","w",stdout);
 	const bool is_online=1; 
     cmd ticketLibrary;

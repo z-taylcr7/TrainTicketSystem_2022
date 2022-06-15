@@ -7,11 +7,11 @@
 #include <iostream>
 #include <fstream>
 #include "STL.h"
-#include "hashmap.hpp"
+using std::pair;
 using std::string;
 
 namespace Geneva {
-    template<class T, class preface = int>
+    template<class T, class preface = int, int CacheSize = 120>
     class MemoryPool {
     private:
         class DoublyLinkedList {
@@ -106,7 +106,7 @@ namespace Geneva {
         int writePoint=-1;
 
 
-        HashMap2<int, node_t*> hashmap;
+        HashMap<int, node_t*> hashmap;
         DoublyLinkedList cache;
 
         int count_Cache(int key) {
@@ -126,7 +126,6 @@ namespace Geneva {
         }
 
         void write_Cache(int key, const T &o) {
-//        	puts("write_Cache here") ;
             if (count_Cache(key)) {
                 cache.to_front(hashmap[key]);
                 *hashmap[key]->value = o;
@@ -134,11 +133,8 @@ namespace Geneva {
             }
             auto newNode = new node_t(key, o);
             if (cache.full())remakeLRU();
-//            puts("qqq");
             cache.push_front(newNode);
-//            puts("www");
             hashmap[key] = newNode;
-//            puts("write_Cache finished");
         }
 
         int write_File(const T &o) {
@@ -187,7 +183,7 @@ namespace Geneva {
         }
 
     public:
-        explicit MemoryPool(const string &_filename, const preface &pre = preface{}, int _capacity = 120)
+        explicit MemoryPool(const string &_filename, const preface &pre = preface{}, int _capacity = CacheSize)
                 : filename(_filename), cache(_capacity), hashmap() {
             file = fopen(filename.c_str(), "rb");
             if (file == NULL) {
@@ -221,26 +217,27 @@ namespace Geneva {
             write_Cache(offset, tmp);
             return tmp;
         }
+    	T get(int offset){return read(offset);}
 
         int write(const T &o) {
-//        	puts("write here"); 
             int offset = write_File(o);
-//            puts("GG");
             write_Cache(offset, o);
-//            puts("??");
             return offset;
         }
-
+        int add(const T &o){return write(o);} 
+        
         void update(const T &o, int offset) {
             write_Cache(offset, o);
             hashmap[offset]->useless = true;
         }
+  		void update(int offset,const T &o){update(o,offset);}
 
         void erase(int offset) {
             if (count_Cache(offset))erase_Cache(offset);
             erase_File(offset);
         }
-
+    	void remove(int offset){erase(offset);}
+    	
         void clear(preface ex = preface{}) {
             hashmap.clear();
             cache.clear();
@@ -255,6 +252,7 @@ namespace Geneva {
             fwrite(reinterpret_cast<const char *>(&writePoint), sizeof(int), 1, file);
             fclose(file);
         }
+    	void clearAll(){clear();}
 
         preface readPre() {
             file = fopen(filename.c_str(), "rb+");
@@ -264,6 +262,7 @@ namespace Geneva {
             fclose(file);
             return tmp;
         }
+    	preface readExtraBlock(){readPre();}
 
         void updatePre(const preface &o) {
             file = fopen(filename.c_str(), "rb+");
@@ -271,6 +270,7 @@ namespace Geneva {
             fwrite(reinterpret_cast<const char *>(&o), sizeof(preface), 1, file);
             fclose(file);
         }
+    	void writeExtraBlock(const preface& o){updatePre(o);}
 
         int getWritePoint() {
             if (writePoint >= 0)return writePoint;

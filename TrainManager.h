@@ -6,7 +6,7 @@ private:
 	private:
 		BPlusTree<> mtrain_index;
 		BPlusTree<> strain_index;
-		StoragePool<Train,bool,20> train_data;
+		MemoryPool<Train,bool,3*1024*1024/sizeof(Train)> train_data;
 	public:
 		TrainStorage():mtrain_index("mtrain_index.dat"),strain_index("strain_index.dat"),train_data("train_data.dat"){}
 		~TrainStorage()=default;
@@ -56,7 +56,7 @@ private:
 	class SeatStorage{
 	private:
 		BPlusTree<> seat_index;
-		StoragePool<RemainedSeat,bool,20>seat_data;
+		MemoryPool<RemainedSeat,bool,3*1024*1024/sizeof(RemainedSeat)>seat_data;
 		string get_key(const string&train_id,const Date&data)const{
 			return train_id+data.show_message();
 		}
@@ -94,7 +94,7 @@ private:
 	class LogStorage{
 	private:
 		BPlusTree<>  log_index;
-		StoragePool<Log,bool,20>log_data;
+		MemoryPool<Log,bool,3*1024*1024/sizeof(Log)>log_data;
 	public:
 		LogStorage():log_index("log_index.dat"),log_data("log_data.dat"){}
 		~LogStorage()=default;

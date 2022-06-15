@@ -19,7 +19,7 @@ class System{
 	private:
 struct ints {int value=0; ints()=default; explicit ints(int x):value(x){}};
 		BPlusTree<> order_index;
-		StoragePool<Order,ints,20>order_data;
+		MemoryPool<Order,ints,3*1024*1024/sizeof(Order)>order_data;
 	public:
 		OrderStorage():order_index("order_index.dat"),order_data("order_data.dat"){}
 		~OrderStorage()=default;
