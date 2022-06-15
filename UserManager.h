@@ -9,7 +9,7 @@ struct ints {int value=0; ints()=default; explicit ints(int x):value(x){}};
 		bool is_empty=1;
 	public:
 		UserStorage():user_index("user_index.dat"){
-			user_data=new MemoryPool<User,ints>("user_data.dat",ints(0),100000/sizeof(User));
+			user_data=new MemoryPool<User,ints>("user_data.dat",ints(0),1000000/sizeof(User));
 			is_empty=(user_data->readExtraBlock().value==0);
 		}
 		~UserStorage(){
