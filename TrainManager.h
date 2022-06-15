@@ -4,8 +4,8 @@ class TrainManager{
 private:
 	class TrainStorage{
 	private:
-		BPlusTree<400,200>mtrain_index;
-		BPlusTree<400,200>strain_index;
+		BPlusTree<190,190>mtrain_index;
+		BPlusTree<190,190>strain_index;
 		StoragePool<Train,bool,20> train_data;
 	public:
 		TrainStorage():mtrain_index("mtrain_index.dat"),strain_index("strain_index.dat"),train_data("train_data.dat"){}
@@ -36,14 +36,7 @@ private:
 			vector<pair<int,ll> >tmp;
 			
 			ll key=hash_int(train.train_id());
-			for(int i=0;i<train.station_num();i++){
-//				std::cout<<"insert "<<(String)train.station_name(i)<<" "<<key<<"\n";
-				mtrain_index.insert({train.station_name(i),key},id);
-//				for(int j=i;j>=0;j--){
-//					tmp.clear();
-//					get_ids(train.station_name(j),tmp);
-//				}
-			}
+			for(int i=0;i<train.station_num();i++) mtrain_index.insert({train.station_name(i),key},id);
 			train_data.update(id,train);
 		}
 		void add_train(const string&train_id,const Train&train){
@@ -62,7 +55,7 @@ private:
 	};
 	class SeatStorage{
 	private:
-		BPlusTree<400,200> seat_index;
+		BPlusTree<190,190> seat_index;
 		StoragePool<RemainedSeat,bool,20>seat_data;
 		string get_key(const string&train_id,const Date&data)const{
 			return train_id+data.show_message();
@@ -71,10 +64,10 @@ private:
 		SeatStorage():seat_index("seat_index.dat"),seat_data("seat_data.dat"){}
 		~SeatStorage()=default;
 		int get_id(const string&train_id,const Date&date){
-			vector<pair<int,ll> >tmp;tmp.clear();
+			vector<pair<int,ll> >tmp;
 			seat_index.find(get_key(train_id,date),tmp);
 			if(tmp.empty()) return -404;
-			if(tmp.size()>1) std::cout<<" wtf ";
+//			if(tmp.size()>1) std::cout<<" wtf ";
 			return tmp[0].second;
 		}
 		RemainedSeat get_seats(const int&id){
@@ -100,7 +93,7 @@ private:
 	};
 	class LogStorage{
 	private:
-		BPlusTree<400,200> log_index;
+		BPlusTree<190,190> log_index;
 		StoragePool<Log,bool,20>log_data;
 	public:
 		LogStorage():log_index("log_index.dat"),log_data("log_data.dat"){}
@@ -339,31 +332,22 @@ public:
 		if(!train.check_date(date,station_s)) return -404;//无车次安排 
 		if(!train.check_sequence(pos)) return -404;//不到这两站
 		if(train.seat_num()<n) return -404;
-//		std::cout<<"1111"<<std::endl; 
 		Date d=train.setoff_date(station_s,date);
-//		std::cout<<d.show_message()<<"\n"; 
 		int seat_id=seats.get_id(trainID,d);
 		RemainedSeat seat(seats.get_seats(seat_id));
-//		std::cout<<"2222"<<std::endl; 
 		int seat_remain=train.check_seat(pos,seat);
 		ll tot_price=train.get_price(pos,n);
-//		std::cout<<"3333"<<std::endl; 
 		pair<RealTime,RealTime> time=train.obtain_time(pos,d); 
 		if(seat_remain>=n){
-//		std::cout<<"4444"<<std::endl; 
 			train.de_seat(pos,n,seat);
 			seats.update(seat_id,seat);
-//		std::cout<<"6666"<<std::endl; 
 //		return 0;
 			write_log(id,SUCCESS,username,trainID,station_s,station_t,time.first,time.second,tot_price/n,n);
-//		std::cout<<"7777"<<std::endl; 
 			return tot_price;
 		}else{
-//		std::cout<<"5555"<<std::endl; 
 			if(!q) return -404;
 //		return 0;
 			write_log(id,PENDING,username,trainID,station_s,station_t,time.first,time.second,tot_price/n,n);
-//		std::cout<<"8888"<<std::endl; 
 			return 0;
 		}
 	}
