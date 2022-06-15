@@ -22,7 +22,7 @@ struct ints {int value=0; ints()=default; explicit ints(int x):value(x){}};
 		MemoryPool<Order,ints>*order_data;
 	public:
 		OrderStorage():order_index("order_index.dat"){
-			order_data=new MemoryPool<Order,ints>("order_data.dat",ints(0),20);
+			order_data=new MemoryPool<Order,ints>("order_data.dat",ints(0),100000/sizeof(Order));
 		}
 		~OrderStorage(){
 			delete order_data;

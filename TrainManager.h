@@ -9,7 +9,7 @@ private:
 		MemoryPool<Train,bool>*train_data;
 	public:
 		TrainStorage():mtrain_index("mtrain_index.dat"),strain_index("strain_index.dat"){
-			train_data= new MemoryPool<Train,bool>("train_data.dat",0,20);
+			train_data= new MemoryPool<Train,bool>("train_data.dat",0,100000/sizeof(Train));
 		}
 		~TrainStorage(){
 			delete train_data;
@@ -66,7 +66,7 @@ private:
 		}
 	public:
 		SeatStorage():seat_index("seat_index.dat"){
-			seat_data=new MemoryPool<RemainedSeat,bool>("seat_data.dat",0,20);
+			seat_data=new MemoryPool<RemainedSeat,bool>("seat_data.dat",0,100000/sizeof(RemainedSeat));
 		}
 		~SeatStorage(){
 			delete seat_data;
@@ -105,7 +105,7 @@ private:
 		MemoryPool<Log,bool>*log_data;
 	public:
 		LogStorage():log_index("log_index.dat"){
-			log_data=new MemoryPool<Log,bool>("log_data.dat",0,20);
+			log_data=new MemoryPool<Log,bool>("log_data.dat",0,100000/sizeof(Log));
 		}
 		~LogStorage(){
 			delete log_data;
