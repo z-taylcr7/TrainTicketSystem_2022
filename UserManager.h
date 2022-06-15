@@ -4,7 +4,7 @@ private:
 	class UserStorage{
 	private:
 struct ints {int value=0; ints()=default; explicit ints(int x):value(x){}};
-		MemoryPool<User,ints,3*1024*1024/sizeof(User)>user_data;
+		MemoryPool<User,ints,30000/sizeof(User)>user_data;
 		BPlusTree<> user_index;
 		bool is_empty=1;
 	public:
