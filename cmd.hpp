@@ -3,28 +3,84 @@
 //
 
 #include "System.h"
-#include "separator.h"
 #include <sstream>
 typedef const string & str;
 typedef const vector<int> & vecI;
 typedef vector<string> vecS;
 typedef long long lint;
 typedef std::pair<int,lint> ex_index;
+int tim=0;
+
+class separator{
+    std::string line;
+    vector<std::string> tokens;
+    char ban;
+
+public:
+    separator()=default;
+    explicit separator(char ch):ban(ch){}
+    ~separator(){
+        tokens.clear();
+    }
+    void process(){
+        tokens.clear();
+        int cnt=0;
+        std::string token;
+        for(int i=0;i<line.size();i++){
+            if(line[i]==ban){
+                if(token.size()){
+                    tokens.push_back(token);
+                    token.clear();++cnt;
+                }
+            }else{
+                token+=line[i];
+            }
+        }
+        if(token.size()){
+            tokens.push_back(token);
+            token.clear();++cnt;
+        }
+    };
+    void process(const std::string& l){
+        line=l;
+        process();
+    }
+    int size(){
+        return tokens.size();
+    }
+    bool empty(){
+        return tokens.empty();
+    }
+    bool readLine(std::istream &is)
+    {
+        if(is.eof()) return false;
+        getline(is,line);
+        process();
+        return true;
+    }
+    vector<std::string> content(){
+        return tokens;
+    }
+    std::string &operator[](int p){
+        return tokens[p];
+    }
+
+};
 class cmd
 {
 private:
     System sys;
-    Fourest::separator words;
+    separator words;
 
     static void to_vector_int(str input,vector<int> &out)
     {
-        Fourest::separator ints('|');
+        separator ints('|');
         ints.process(input);
         for(int i=0;i<ints.size();++i) out.push_back(to_int(ints[i]));
     }
     static void to_vector_str(str input,vector<string> &out)
     {
-        Fourest::separator ints('|');
+        separator ints('|');
         ints.process(input);
         out=ints.content();
     }
@@ -41,6 +97,12 @@ private:
     }
 public:
     cmd():words(' '){}
+    int To_int(string s){
+    	int res=0,len=s.length(),i=0;
+    	while(s[i]>'9'||s[i]<'0') i++;
+    	while(i<len&&s[i]>='0'&&s[i]<='9') res=res*10+s[i]-'0',i++;
+    	return res;
+    }
     void run(std::istream &is, std::ostream &os)
     {
 //    	puts("Programme begin");
@@ -48,12 +110,14 @@ public:
         words.readLine(is);
         do
         {
+//            sys.printbacis();
 //        	std::cout<<"!!!"<<'\n';
 //        	tt--;if(!tt) break;
             if(words.empty()) continue;
 //            std::cerr<<"[Debug]"<<words[1]<<std::endl;
             auto &command=words[1];
             os<<words[0]<<" "; 
+            tim=To_int(words[0]);
             if(command=="add_user")
             {
                 std::string c(""),u(""),p(""),n(""),m("");
@@ -271,6 +335,16 @@ public:
                 os<<"bye"<<std::endl;
                 os.flush();
                 break;
+            }
+            else if(command=="rollback")
+            {
+            	int timn=0;
+                for(int j=2; j<words.size(); j+=2)
+                {
+                    if(words[j]=="-t") timn=to_int(words[j+1]);
+                }
+                if(timn>tim) os<<-1;
+                else os<<sys.rollback(timn);
             }
             os<<"\n";
         } while(words.readLine(is));

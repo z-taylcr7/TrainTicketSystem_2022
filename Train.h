@@ -73,7 +73,7 @@ public:
 	Train()=default;
 	~Train()=default;
 	Train(const string&_trainID,const int&n,const int&m,const vector<string>&station_name,vector<int>&_price,const Time&st_time,vector<int>&travelTimes,vector<int>&stopoverTimes,const Date&st,const Date&ed,const char&_train_type):trainID(_trainID),startTime(st_time),sale_st(st),sale_ed(ed),stationNum(n),seatNum(m),train_type(_train_type){
-		if(_train_type>'Z'||_train_type<'A') std::cout<<trainID<<" "<<_train_type; 
+//		if(_train_type>'Z'||_train_type<'A') std::cout<<trainID<<" "<<_train_type; 
 		if_release=0;
 		station[0].update(station_name[0],0);
 		station[0].departure=RealTime(Date(6,1),st_time);

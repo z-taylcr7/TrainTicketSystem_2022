@@ -59,6 +59,10 @@ struct ints {int value=0; ints()=default; explicit ints(int x):value(x){}};
 			order_index.clear();
 			order_data->clearAll();
 		}
+		void rollback(const int&ddl){
+			order_index.rollback(ddl);
+			order_data->rollback(ddl);
+		}
 	};
 	TrainManager train;
 	UserManager user;
@@ -72,7 +76,7 @@ struct ints {int value=0; ints()=default; explicit ints(int x):value(x){}};
 public:
 	System()=default;
 	~System()=default;
-	
+	void printbacis(){user.printbacis();} 
 	bool release_train(const string&trainID){
 		return train.release_train(trainID);
 	}
@@ -177,5 +181,16 @@ public:
 				return "queue"; 
 			}else return "-1";
 		}
+	}
+	bool rollback(const int&ddl){
+//		std::cout<<"del train here"<<std::endl; 
+		train.rollback(ddl);
+		
+//		std::cout<<"del user here"<<std::endl;
+		user.rollback(ddl);
+		
+//		std::cout<<"del order here"<<std::endl;
+		orders.rollback(ddl); 
+		return 0;
 	}
 };

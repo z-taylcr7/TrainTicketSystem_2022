@@ -8,6 +8,11 @@ struct ints {int value=0; ints()=default; explicit ints(int x):value(x){}};
 		MemoryPool<User,ints>*user_data;
 		bool is_empty=1;
 	public:
+		void printbacis(){user_index.printbacis();}
+		void rollback(const int&ddl){
+			user_index.rollback(ddl);
+			user_data->rollback(ddl);
+		}
 		UserStorage():user_index("user_index.dat"){
 			user_data=new MemoryPool<User,ints>("user_data.dat",ints(0),1000000/sizeof(User));
 			is_empty=(user_data->readExtraBlock().value==0);
@@ -16,7 +21,7 @@ struct ints {int value=0; ints()=default; explicit ints(int x):value(x){}};
 			delete user_data;
 		}
 		
-		int get_id(const string&username){// ÕÒµ½usernameµÄÕË»§µÄ´¢´æµØÖ· 
+		int get_id(const string&username){// ï¿½Òµï¿½usernameï¿½ï¿½ï¿½Ë»ï¿½ï¿½Ä´ï¿½ï¿½ï¿½ï¿½Ö· 
 			vector<pair<int,ll> >temp;
 			user_index.find(username,temp);
 			if(temp.empty()) return -404;
@@ -27,7 +32,7 @@ struct ints {int value=0; ints()=default; explicit ints(int x):value(x){}};
 		void update(const int&id,const User&user){user_data->update(id,user);}
 		void add_user(const string&username,const User&user){
 			int id=user_data->add(user);
-//			puts("users_insert here");
+//			std::cout<<"<id = "<<id<<" >" <<std::endl;
 			user_index.insert({username,id},id); 
 //			puts("users_insert finished");
 		}
@@ -43,7 +48,7 @@ struct ints {int value=0; ints()=default; explicit ints(int x):value(x){}};
 public:
 	UserManager(){}
 	~UserManager(){logged_users.clear();}
-	
+	void printbacis(){users.printbacis();}
 	bool add_user(const string&ouser,const string&username,const string&password,const string&name,const string&mailAddr,const int&privilege){
 //		std::cout<<username<<"  GG\n"; 
 		
@@ -64,29 +69,35 @@ public:
 		int priority=check_priority(ouser);
 		if(priority==-404 || priority<=privilege){
 //			std::cout<<"here1\n";
-			return 0;// ÓÃ»§²»´æÔÚ»òÈ¨ÏÞ²»¹» 
+			return 0;// ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú»ï¿½È¨ï¿½Þ²ï¿½ï¿½ï¿½ 
 		}
 		if(users.get_id(username)>=0){
 //			std::cout<<"here2\n";
-			return 0; //ÓÃ»§ÒÑ´æÔÚ 
+			return 0; //ï¿½Ã»ï¿½ï¿½Ñ´ï¿½ï¿½ï¿½ 
 		}
 		users.add_user(username,User(username,password,name,mailAddr,privilege));
 		return 1; 
 	}
 	
 	bool login(const string&username,const string&password){
-		if(check_priority(username)!=-404) return 0;// ÒÑµÇÂ¼ 
+		if(check_priority(username)!=-404) return 0;// ï¿½Ñµï¿½Â¼ 
 		int id=users.get_id(username);
-		if(id<0) return 0;//ÓÃ»§²»´æÔÚ 
+		if(id<0){
+//			std::cout<<"GGhere"<<id<<std::endl;
+			return 0;//ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 
+		} 
 		User user(users.get_user(id));
-		if(!user.check_pass(password)) return 0;//ÃÜÂë´íÎó 
+		if(!user.check_pass(password)){
+ //           std::cout<<"gghere hhh"<<std::endl;
+            return 0;//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+        }
 		logged_users.insert(username,{user.priority(),user.query_ticketNum()});
 		return 1;
 	}
 	bool logout(const string&username){
 //		std::cout<<"! "<<username<<" !\n";
 		auto tmp=logged_users.find(username);
-		if(tmp==NULL) return 0;//ÓÃ»§²»´æÔÚ»òÎ´µÇÂ¼ 
+		if(tmp==NULL) return 0;//ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú»ï¿½Î´ï¿½ï¿½Â¼ 
 		logged_users.erase(username);
 		return 1; 
 	}
@@ -94,23 +105,37 @@ public:
 	string query_profile(const string&ouser,const string&username){
 		string fail("-1");
 		int priority=check_priority(ouser);
-		if(priority==-404) return fail;//Î´µÇÂ¼ 
+		if(priority==-404){
+ //           std::cout<<"weidenglu"<<std::endl;
+            return fail;//Î´ï¿½ï¿½Â¼
+        }
 		
 		int id=users.get_id(username);
-		if(id<0) return fail;//ÓÃ»§²»´æÔÚ
+		if(id<0){
+//            std::cout<<"meizhaodao"<<std::endl;
+            return fail;//ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+        }
 		User user(users.get_user(id));
-		if(user.priority()>=priority&&ouser!=username) return fail;//È¨ÏÞ²»¹»
+		if(user.priority()>=priority&&ouser!=username) return fail;//È¨ï¿½Þ²ï¿½ï¿½ï¿½
 		return user.ID_message(); 
 	}
 	string modify_profile(const string&ouser,const string&username,const string&password,const string&name,const string&mailAddr,const int&privilege){
 		string fail("-1");
 		int priority=check_priority(ouser);
-		if(priority==-404) return fail;//Î´µÇÂ¼
-		
+		if(priority==-404){
+//			std::cout<<"meidenglu"<<std::endl;
+			return fail;//Î´ï¿½ï¿½Â¼
+		}
 		int id=users.get_id(username);
-		if(id<0) return fail;//ÓÃ»§²»´æÔÚ
+		if(id<0){
+//			std::cout<<"zhaobudao"<<std::endl;
+			return fail;//ï¿½Ã»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+		}
 		User user(users.get_user(id));
-		if((user.priority()>=priority&&ouser!=username)||privilege>=priority) return fail;//È¨ÏÞ²»¹»
+		if((user.priority()>=priority&&ouser!=username)||privilege>=priority){
+//			std::cout<<user.priority()<<"wtf???"<<priority<<std::endl;
+			return fail;//È¨ï¿½Þ²ï¿½ï¿½ï¿½
+		}
 		if(password!="") user.pass()=password;
 		if(name!="") user.nam()=name;
 		if(mailAddr!="") user.mail()=mailAddr;
@@ -118,12 +143,14 @@ public:
 		users.update(id,user);
 		return user.ID_message();
 	}
-	
-	int check_priority(const string&user)const{
-		auto tmp=logged_users.find(user);
-		if(tmp==NULL) return -404;
-		return tmp->first;
-	}
+
+    int check_priority(const string&user){
+        auto tmp=logged_users.find(user);
+        if(tmp==NULL) return -404;
+        int id=users.get_id(user);
+        User xxx(users.get_user(id));
+        return xxx.priority();
+    }
 	void clean(){
 		users.clean();
 		logged_users.clear();
@@ -148,5 +175,9 @@ public:
 		auto tmp=logged_users.find(username);
 		if(tmp!=NULL) tmp->second++;
 		return 1;
+	}
+	void rollback(const int&ddl){
+		users.rollback(ddl);
+		logged_users.clear();
 	}
 };
