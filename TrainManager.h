@@ -14,13 +14,15 @@ private:
 		~TrainStorage(){
 			delete train_data;
 		}
-		int get_id(const string&train_id){// ÕÒµ½train_idµÄ´¢´æµØÖ· 
+		int get_id(const string&train_id){// ï¿½Òµï¿½train_idï¿½Ä´ï¿½ï¿½ï¿½ï¿½Ö· 
 			vector<pair<int,ll> >tmp;
+//			std::cout<<"<wtf>";
 			strain_index.find((train_id),tmp);
+//			std::cout<<"<wtf>";
 			if(tmp.empty()) return -404;
 			return tmp[0].first;
 		}
-		int get_ids(const string&station_name,vector<pair<int,ll> >&o){//ÕÒµ½Í¾¾­station_nameµÄËùÓÐ»ð³µ 
+		int get_ids(const string&station_name,vector<pair<int,ll> >&o){//ï¿½Òµï¿½Í¾ï¿½ï¿½station_nameï¿½ï¿½ï¿½ï¿½ï¿½Ð»ï¿½ 
 			mtrain_index.find(station_name,o);
 //			std::cout<<"get_ids of "<<station_name<<"  "<<o.size()<<"\n";
 			if(o.empty()) return -404;
@@ -55,6 +57,15 @@ private:
 			train_data->clearAll();
 			strain_index.clear();
 			mtrain_index.clear();
+		}
+		void rollback(const int&ddl){
+			
+//		std::cout<<"gg1"<<std::endl;
+			mtrain_index.rollback(ddl);
+//		std::cout<<"gg2"<<std::endl;
+			strain_index.rollback(ddl);
+//		std::cout<<"gg3"<<std::endl;
+			train_data->rollback(ddl);
 		}
 	};
 	class SeatStorage{
@@ -97,6 +108,10 @@ private:
 		void clean(){
 			seat_index.clear();
 			seat_data->clearAll();
+		}
+		void rollback(const int&ddl){
+			seat_index.rollback(ddl);
+			seat_data->rollback(ddl);
 		}
 	};
 	class LogStorage{
@@ -142,13 +157,17 @@ private:
 			log_index.clear();
 			log_data->clearAll();
 		}
+		void rollback(const int&ddl){
+			log_index.rollback(ddl);
+			log_data->rollback(ddl);
+		}
 	};
 	TrainStorage trains;
 	SeatStorage seats;
 	LogStorage logs;
 	bool update_log(const string&username,const int&id,const Status&status){
 		int log_id=logs.get_id(username,id);
-		if(log_id<0) return 0;//Î´ÕÒµ½¶©µ¥
+		if(log_id<0) return 0;//Î´ï¿½Òµï¿½ï¿½ï¿½ï¿½ï¿½
 		Log log(logs.get_log(log_id));
 		log.modify_status(status);
 		logs.update(log_id,log);
@@ -166,10 +185,17 @@ public:
 	
 	bool release_train(const string&trainID){
 		int id=trains.get_id(trainID);
-		if(id<0) return 0;//ÁÐ³µ²»´æÔÚ
+		if(id<0){
+//            std::cout<<"zhaobudao"<<std::endl;
+            return 0;//ï¿½Ð³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+        }
 		Train  train(trains.get_train(id));
-		if(train.if_released()) return 0;//ÁÐ³µÒÑ·¢²¼
+		if(train.if_released()){
+//            std::cout<<"yijinrlsl"<<std::endl;
+            return 0;//ï¿½Ð³ï¿½ï¿½Ñ·ï¿½ï¿½ï¿½
+        }
 		train.release();
+        trains.update(id,train);
 		trains.release(id,train);
 		seats.release(train); 
 		return 1;
@@ -182,28 +208,30 @@ public:
 	
 	bool add_train(const string&_trainID,const int&n,const int&m,const vector<string>&station_name,vector<int>&_price,const Time&st_time,vector<int>&travelTimes,vector<int>&stopoverTimes,const Date&st,const Date&ed,const char&_train_type){
 		int id=trains.get_id(_trainID);
-		if(id>=0) return 0;//ÁÐ³µÒÑ´æÔÚ
+		if(id>=0) return 0;//ï¿½Ð³ï¿½ï¿½Ñ´ï¿½ï¿½ï¿½
+//		std::cout<<"<!!!>";
 		Train new_train(_trainID,n,m,station_name,_price,st_time,travelTimes,stopoverTimes,st,ed,_train_type);
+//		std::cout<<"<HERE>"; 
 		trains.add_train(_trainID,new_train);
 		return 1;
 	}
 	bool delete_train(const string&_trainID){
 		int id=trains.get_id(_trainID);
-		if(id<0) return 0;//ÁÐ³µ²»´æÔÚ
+		if(id<0) return 0;//ï¿½Ð³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 		Train train(trains.get_train(id));
-		if(train.if_released()) return 0;//ÁÐ³µÒÑ·¢²¼
+		if(train.if_released()) return 0;//ï¿½Ð³ï¿½ï¿½Ñ·ï¿½ï¿½ï¿½
 		trains.delete_train(_trainID,id);
 		return 1; 
 	}
 	void query_train(const string&trainID,Date date,vector<string>&o){
 		int id=trains.get_id(trainID);
-		if(id<0){//ÁÐ³µ²»´æÔÚ 
+		if(id<0){//ï¿½Ð³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 
 			o.push_back("-1");
 			return;
 		}
 		Train train(trains.get_train(id));
 		pair<Date,Date> day=train.date();
-		if(date<day.first||day.second<date){//¸ÃÊ±¼ä¶ÎÃ»³µ 
+		if(date<day.first||day.second<date){//ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ 
 			o.push_back("-1");
 			return;
 		}
@@ -293,7 +321,7 @@ public:
 			for(int j=0;j<trains2.size();j++){
 				Train train2(trains.get_train(trains2[j].first));
 				ll hash_t2=hash_int(train2.train_id());
-				if(!train2.if_released()||hash_t1==hash_t2) continue;//×¢ÒâÌØÅÐÁ½ÁÐ³µÒ»Ñù£¡
+				if(!train2.if_released()||hash_t1==hash_t2) continue;//×¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð³ï¿½Ò»ï¿½ï¿½ï¿½ï¿½
 				for(int k=0;k<train2.station_num();k++){
 					const string&st=train2.station_name(k);
 					ll hash_st=hash_int(st);
@@ -340,9 +368,9 @@ public:
 		if(train_id<0) return -404;
 		Train train(trains.get_train(train_id));
 		pair<int,int>pos=train.get_id(station_s,station_t);
-		if(!train.if_released()) return -404;//ÁÐ³µÎ´·¢²¼ 
-		if(!train.check_date(date,station_s)) return -404;//ÎÞ³µ´Î°²ÅÅ 
-		if(!train.check_sequence(pos)) return -404;//²»µ½ÕâÁ½Õ¾
+		if(!train.if_released()) return -404;//ï¿½Ð³ï¿½Î´ï¿½ï¿½ï¿½ï¿½ 
+		if(!train.check_date(date,station_s)) return -404;//ï¿½Þ³ï¿½ï¿½Î°ï¿½ï¿½ï¿½ 
+		if(!train.check_sequence(pos)) return -404;//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¾
 		if(train.seat_num()<n) return -404;
 		Date d=train.setoff_date(station_s,date);
 		int seat_id=seats.get_id(trainID,d);
@@ -405,6 +433,15 @@ public:
 	}
 	int get_seat_id(const string trainID,const Date&date){
 		return seats.get_id(trainID,date);
+	}
+	void rollback(const int&ddl){
+		
+//		std::cout<<"g1"<<std::endl;
+		trains.rollback(ddl);
+//		std::cout<<"g2"<<std::endl;
+		seats.rollback(ddl);
+//		std::cout<<"g3"<<std::endl;
+		logs.rollback(ddl);
 	}
 };
 

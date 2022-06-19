@@ -9,135 +9,33 @@
 #include "STL.h"
 using std::pair;
 using std::string;
-
+//rollback:
+// updatePre--0
+// insert--1
+// update--2
+// erase--3
+extern int tim;
 namespace Geneva {
     template<class T, class preface = int>
     class MemoryPool {
     private:
-        class DoublyLinkedList {
-        public:
-            class Node {
-            public:
-                int key = -1;
-                T *value = nullptr;
-                Node *pre = nullptr;
-                Node *next = nullptr;
-                bool useless = false;
+        const string filename;
+        const string logname;
+        FILE *file;
+        FILE *log;
+        int writePoint=-1;
+        int rbPoint=8;
 
-                Node() = default;
-
-                Node(int k, const T &v, Node *pre_ = nullptr, Node *nxt_ = nullptr) : key(k), value(new T(v)), pre(pre_),
-                                                                                      next(nxt_) {}
-
-                ~Node() {
-                    delete value;
-                }
-            };
-
-            Node *head = nullptr;
-            Node *tail = nullptr;
-            int listSize = 0;
-            int capacity = 0;
-
-            explicit DoublyLinkedList(int _capacity) : capacity(_capacity) {
-                head = new Node(), tail = new Node();
-                head->next = tail, tail->pre = head;
-            }
-
-            ~DoublyLinkedList() {
-                Node *tmp = head;
-                while (head != nullptr) {
-                    head = head->next;
-                    delete tmp;
-                    tmp = head;
-                }
-            }
-
-            void clear() {
-                listSize = 0;
-                Node *tmp = head;
-                while (head != nullptr) {
-                    head = head->next;
-                    delete tmp;
-                    tmp = head;
-                }
-                head = new Node(), tail = new Node();
-                head->next = tail, tail->pre = head;
-            }
-
-            void push_front(Node *n) {
-                head->next->pre = n;
-                n->next = head->next;
-                head->next = n;
-                n->pre = head;
-                listSize++;
-            }
-
-            void to_front(Node *n) {
-                n->pre->next = n->next;
-                n->next->pre = n->pre;
-                listSize--;
-                push_front(n);
-            }
-
-            Node *pop_back() {
-                Node *target = tail->pre;
-                target->pre->next = tail;
-                tail->pre = tail->pre->pre;
-                listSize--;
-                return target;
-            }
-
-            void erase(Node *n) {
-                n->pre->next = n->next;
-                n->next->pre = n->pre;
-                listSize--;
-                delete n;
-            }
-
-            bool full() const {
-                return listSize == capacity;
-            }
+        struct block{
+            int offset;
+            T t;
+            int op;
+            int time;
+            preface pre;
         };
 
-        using node_t = typename DoublyLinkedList::Node;
-        const string filename;
-        FILE *file;
-        int writePoint=-1;
 
-
-        HashMap<int, node_t*> hashmap;
-        DoublyLinkedList cache;
-
-        int count_Cache(int key) {
-            return hashmap.count(key);
-        }
-
-        void remakeLRU() {
-            node_t *target = cache.pop_back();
-            hashmap.erase(target->key);
-            if (target->useless)update_File(target->key, *target->value);
-            delete target;
-        }
-
-        void erase_Cache(int key) {
-            cache.erase(hashmap[key]);
-            hashmap.erase(key);
-        }
-
-        void write_Cache(int key, const T &o) {
-            if (count_Cache(key)) {
-                cache.to_front(hashmap[key]);
-                *hashmap[key]->value = o;
-                return;
-            }
-            auto newNode = new node_t(key, o);
-            if (cache.full())remakeLRU();
-            cache.push_front(newNode);
-            hashmap[key] = newNode;
-        }
-
-        int write_File(const T &o) {
+        int write_File_Rollback(const T &o) {
             int offset;
             file = fopen(filename.c_str(), "rb+");
             if (writePoint <= 0) {
@@ -155,6 +53,31 @@ namespace Geneva {
             fclose(file);
             return offset;
         }
+        int write_File(const T &o) {
+            int offset;
+            file = fopen(filename.c_str(), "rb+");
+            log = fopen(logname.c_str(),"rb+");
+
+            if (writePoint <= 0) {
+                fseek(file, 0, SEEK_END);
+                offset = ftell(file);
+            } else {
+                offset = writePoint;
+                fseek(file, writePoint, SEEK_SET);
+                fread(reinterpret_cast<char *>(&writePoint), sizeof(int), 1, file);
+                fseek(file, sizeof(preface), SEEK_SET);
+                fwrite(reinterpret_cast<const char *>(&writePoint), sizeof(int), 1, file);
+                fseek(file, offset, SEEK_SET);
+            }
+            fwrite(reinterpret_cast<const char *>(&o), sizeof(T), 1, file);
+            fclose(file);
+            block b{offset,o,1,tim,preface()};
+            fseek(log, rbPoint, SEEK_SET);
+            fwrite(reinterpret_cast<const char*>(&b),sizeof(block),1,log);
+            rbPoint+=sizeof (block);
+            fclose(log);
+            return offset;
+        }
 
         T read_File(int offset) {
             file = fopen(filename.c_str(), "rb");
@@ -165,14 +88,35 @@ namespace Geneva {
             return tmp;
         }
 
-        void update_File(int offset, const T &o) {
+        void update_File_Rollback(int offset, const T &o) {
             file = fopen(filename.c_str(), "rb+");
             fseek(file, offset, SEEK_SET);
             fwrite(reinterpret_cast<const char *>(&o), sizeof(T), 1, file);
             fclose(file);
+
+        }
+        void update_File(int offset, const T &o) {
+            file = fopen(filename.c_str(), "rb+");
+            fseek(file, offset, SEEK_SET);
+            T old;
+            fread(reinterpret_cast<char* >(&old),sizeof(T),1,file);
+
+            log = fopen(logname.c_str(),"rb+");
+            block b{offset,old,2,tim,preface()};
+            fseek(log, rbPoint, SEEK_SET);
+
+            fwrite(reinterpret_cast<const char*>(&b),sizeof(block),1,log);
+            rbPoint+=sizeof (block);
+            fclose(log);
+
+            fseek(file, offset, SEEK_SET);
+            fwrite(reinterpret_cast<const char *>(&o), sizeof(T), 1, file);
+            fclose(file);
+
         }
 
-        void erase_File(int offset) {
+        void erase_File_Rollback(int offset) {
+//        	std::cout<<"erase"<<std::endl; 
             file = fopen(filename.c_str(), "rb+");
             fseek(file, offset, SEEK_SET);
             fwrite(reinterpret_cast<const char *>(&writePoint), sizeof(int), 1, file);
@@ -180,69 +124,95 @@ namespace Geneva {
             fseek(file, sizeof(preface), SEEK_SET);
             fwrite(reinterpret_cast<const char *>(&writePoint), sizeof(int), 1, file);
             fclose(file);
+
+        }
+        void erase_File(int offset) {
+            file = fopen(filename.c_str(), "rb+");
+            fseek(file, offset, SEEK_SET);
+            T old;
+            fread(reinterpret_cast<char*>(&old),sizeof(T),1,file);
+            fseek(file, offset, SEEK_SET);
+            fwrite(reinterpret_cast<const char *>(&writePoint), sizeof(int), 1, file);
+            writePoint = offset;
+            fseek(file, sizeof(preface), SEEK_SET);
+            fwrite(reinterpret_cast<const char *>(&writePoint), sizeof(int), 1, file);
+            fclose(file);
+
+            log = fopen(logname.c_str(),"rb+");
+            fseek(log, rbPoint, SEEK_SET);
+            block b{offset,old,3,tim,preface()};
+            fwrite(reinterpret_cast<const char*>(&b),sizeof(block),1,log);
+            rbPoint+=sizeof (block);
+            fclose(log);
         }
 
     public:
-    	MemoryPool()=delete;
+        MemoryPool()=delete;
         explicit MemoryPool(const string &_filename, const preface &pre = preface{}, int _capacity = 120)
-                : filename(_filename), cache(_capacity), hashmap() {
+                : filename(_filename), logname(_filename+"_rb") {
             file = fopen(filename.c_str(), "rb");
+            log = fopen(logname.c_str(),"rb");
             if (file == NULL) {
-//            	std::cout<<"NULL\n"; 
                 file = fopen(filename.c_str(), "wb+");
+                log = fopen(logname.c_str(), "wb+");
                 fclose(file);
+                fclose(log);
                 writePoint = -1;
                 preface tmp(pre);
                 file = fopen(filename.c_str(), "rb+");
+                log = fopen(logname.c_str(), "rb+");
                 fseek(file, 0, SEEK_SET);
                 fwrite(reinterpret_cast<const char *>(&tmp), sizeof(preface), 1, file);
                 fseek(file, sizeof(preface), SEEK_SET);
                 fwrite(reinterpret_cast<const char *>(&writePoint), sizeof(int), 1, file);
+
+                fseek(log,1,SEEK_SET);
+                fwrite(reinterpret_cast<const char *>(&rbPoint), sizeof(int), 1, log);
                 fclose(file);
+                fclose(log);
             } else {
                 fseek(file, sizeof(preface), SEEK_SET);
                 fread(reinterpret_cast<char *>(&writePoint), sizeof(int), 1, file);
+                fseek(log,1,SEEK_SET);
+                fread(reinterpret_cast< char *>(&rbPoint), sizeof(int), 1, log);
+                //std::cout<<rbPoint<<std::endl;
                 fclose(file);
+                fclose(log);
             }
         }
 
         ~MemoryPool() {
-            node_t *now = cache.head->next;
-            while (now != cache.tail) {
-                if (now->useless)update_File(now->key, *now->value);
-                now = now->next;
-            }
+            log = fopen(logname.c_str(),"rb+");
+            fseek(log,1,SEEK_SET);
+            fwrite(reinterpret_cast<const char *>(&rbPoint), sizeof(int), 1, log);
+            fseek(log,1,SEEK_SET);
+            fread(reinterpret_cast< char *>(&rbPoint), sizeof(int), 1, log);
+            fclose(log);
         }
 
         T read(int offset) {
-            T tmp = count_Cache(offset) ? *hashmap[offset]->value : read_File(offset);
-            write_Cache(offset, tmp);
+            T tmp = read_File(offset);
             return tmp;
         }
-    	T get(int offset){return read(offset);}
+        T get(int offset){return read(offset);}
 
         int write(const T &o) {
             int offset = write_File(o);
-            write_Cache(offset, o);
             return offset;
         }
-        int add(const T &o){return write(o);} 
-        
+        int add(const T &o){return write(o);}
+
         void update(const T &o, int offset) {
-            write_Cache(offset, o);
-            hashmap[offset]->useless = true;
+        	update_File(offset,o);
         }
-  		void update(int offset,const T &o){update(o,offset);}
+        void update(int offset,const T &o){update(o,offset);}
 
         void erase(int offset) {
-            if (count_Cache(offset))erase_Cache(offset);
             erase_File(offset);
         }
-    	void remove(int offset){erase(offset);}
-    	
+        void remove(int offset){erase(offset);}
+
         void clear(preface ex = preface{}) {
-            hashmap.clear();
-            cache.clear();
             file = fopen(filename.c_str(), "wb+");
             fclose(file);
             writePoint = -1;
@@ -254,7 +224,7 @@ namespace Geneva {
             fwrite(reinterpret_cast<const char *>(&writePoint), sizeof(int), 1, file);
             fclose(file);
         }
-    	void clearAll(){clear();}
+        void clearAll(){clear();}
 
         preface readPre() {
             file = fopen(filename.c_str(), "rb+");
@@ -264,15 +234,31 @@ namespace Geneva {
             fclose(file);
             return tmp;
         }
-    	preface readExtraBlock(){return readPre();}
+        preface readExtraBlock(){return readPre();}
 
-        void updatePre(const preface &o) {
+        void updatePre_Rollback(const preface &o) {
             file = fopen(filename.c_str(), "rb+");
             fseek(file, 0, SEEK_SET);
             fwrite(reinterpret_cast<const char *>(&o), sizeof(preface), 1, file);
             fclose(file);
         }
-    	void writeExtraBlock(const preface& o){updatePre(o);}
+        void updatePre(const preface &o) {
+            file = fopen(filename.c_str(), "rb+");
+            fseek(file, 0, SEEK_SET);
+            preface old;
+            fread(reinterpret_cast<char *>(&old), sizeof(preface), 1, file);
+            fseek(file, 0, SEEK_SET);
+            fwrite(reinterpret_cast<const char *>(&o), sizeof(preface), 1, file);
+            fclose(file);
+
+            log = fopen(logname.c_str(),"rb+");
+            block b{0,T(),0,tim,old};
+            fseek(log, rbPoint, SEEK_SET);
+            fwrite(reinterpret_cast<const char*>(&b),sizeof(block),1,log);
+            rbPoint+=sizeof (block);
+            fclose(log);
+        }
+        void writeExtraBlock(const preface& o){updatePre(o);}
 
         int getWritePoint() {
             if (writePoint >= 0)return writePoint;
@@ -283,6 +269,35 @@ namespace Geneva {
                 fclose(file);
                 return tmpWritePoint;
             }
+        }
+
+        void rollback(int ddl){
+            //log review
+            log = fopen(logname.c_str(),"rb+");
+            block b;
+            while(rbPoint>8){
+                rbPoint-=sizeof(block);
+                fseek(log,rbPoint,SEEK_SET);
+                fread(reinterpret_cast<char* >(&b),sizeof(block),1,log);
+                if(b.time<ddl){
+                    rbPoint+=sizeof(block);break;
+                }
+//            	std::cout<<"Time = "<<b.time<<std::endl;
+                if(b.op==0){
+                    updatePre_Rollback(b.pre);
+                }
+                if(b.op==1){
+                    erase_File_Rollback(b.offset);
+                }
+                if(b.op==2){
+                    update_File_Rollback(b.offset,b.t);
+                }
+                if(b.op==3){
+                    write_File_Rollback(b.t);
+                }
+            }
+            fclose(log);
+
         }
     };
 }

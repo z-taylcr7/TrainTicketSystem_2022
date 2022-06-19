@@ -1,3 +1,4 @@
+
 #include "cmd.hpp"
 #include <iostream>
 #include <fstream>
@@ -11,7 +12,7 @@
 int main()
 {
 //	printf("%d\n",sizeof(HashMap) ;
-//    freopen("1.in","r",stdin);
+ //   freopen("1.in","r",stdin);
 //    freopen("1.ans","w",stdout);
     cmd ticketLibrary;
     std::ios::sync_with_stdio(false);
