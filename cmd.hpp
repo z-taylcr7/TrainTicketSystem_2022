@@ -1,28 +1,85 @@
 
 
 #include "System.h"
-#include "separator.h"
 #include <sstream>
 typedef const string & str;
 typedef const vector<int> & vecI;
 typedef vector<string> vecS;
 typedef long long lint;
 typedef std::pair<int,lint> ex_index;
+
+class separator{
+    std::string line;
+    vector<std::string> tokens;
+    char ban;
+
+public:
+    separator()=default;
+    explicit separator(const char& ch):ban(ch){}
+    ~separator(){
+        tokens.clear();
+    }
+    void process(){
+        tokens.clear();
+        int cnt=0;
+        std::string token;
+        for(int i=0;i<line.size();i++){
+            if(line[i]==ban){
+                if(token.size()){
+                    tokens.push_back(token);
+                    token.clear();++cnt;
+                }
+            }else{
+                token+=line[i];
+            }
+        }
+        if(token.size()){
+            tokens.push_back(token);
+            token.clear();++cnt;
+        }
+    };
+    void process(const std::string& l){
+        line=l;
+        process();
+    }
+    int size(){
+        return tokens.size();
+    }
+    bool empty(){
+        return tokens.empty();
+    }
+
+    bool readLine(std::istream &is)
+    {
+        if(is.eof()) return false;
+        getline(is,line);
+        process();
+        return true;
+    }
+    vector<std::string>& content(){
+
+        return tokens;
+    }
+    std::string &operator[](int p){
+        return tokens[p];
+    }
+
+};
 class cmd
 {
 private:
     System sys;
-    Fourest::separator words;
+    separator words;
 
     static void to_vector_int(str input,vector<int> &out)
     {
-        Fourest::separator ints('|');
+        separator ints('|');
         ints.process(input);
         for(int i=0;i<ints.size();++i) out.push_back(to_int(ints[i]));
     }
     static void to_vector_str(str input,vector<string> &out)
     {
-        Fourest::separator ints('|');
+        separator ints('|');
         ints.process(input);
         out=ints.content();
     }
