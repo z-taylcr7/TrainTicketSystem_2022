@@ -1,6 +1,4 @@
-//
-// Created by wzj on 2021/1/20.
-//
+
 
 #ifndef BOOKSTORE_ERRORMESSAGE_H
 #define BOOKSTORE_ERRORMESSAGE_H
