@@ -1,6 +1,6 @@
 
-#ifndef FOUREST_SEPARATOR_H
-#define FOUREST_SEPARATOR_H
+#ifndef SRC_SEPARATOR_H
+#define SRC_SEPARATOR_H
 
 
 #include <iostream>
@@ -101,4 +101,4 @@ namespace Fourest
 
 }
 
-#endif //FOUREST_SEPARATOR_H
+#endif //SRC_SEPARATOR_H
