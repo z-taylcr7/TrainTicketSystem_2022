@@ -1,6 +1,4 @@
-//
-// Created by walotta on 2021/5/14.
-//
+
 
 #include "System.h"
 #include "separator.h"
