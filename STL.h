@@ -1,9 +1,7 @@
-//
-// Created by Fourest on 2021/6/6.
-//
 
-#ifndef FOUREST_STL_H
-#define FOUREST_STL_H
+
+#ifndef SRC_STL_H
+#define SRC_STL_H
 #include <functional>
 #include<string>
 using std::string; 
@@ -330,4 +328,4 @@ public:
 };
 
 
-#endif //FOUREST_STL_H
+#endif //SRC_STL_H
